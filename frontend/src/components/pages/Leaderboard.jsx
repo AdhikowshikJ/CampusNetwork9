@@ -12,6 +12,18 @@ import {
 import axios from "axios";
 import useAuthStore from "../Store/authStore";
 
+const Loader = (bool) => (
+  <div
+    className={`flex-1 h-full overflow-hidden ${
+      bool ? "flex flex-col" : "hidden sm:flex flex-col"
+    }`}
+  >
+    <div className="flex items-center justify-center h-full">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-blue-500"></div>
+    </div>
+  </div>
+);
+
 const TrendIcon = ({ trend }) =>
   trend === "up" ? (
     <FaArrowUp className="text-green-400 ml-1" />
@@ -121,10 +133,12 @@ const Leaderboard = () => {
   const [students, setStudents] = useState([]);
   const [currentUserRank, setCurrentUserRank] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuthStore();
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
+      setIsLoading(true);
       try {
         const response = await axios.get(
           `${import.meta.env.VITE_API_BASE_URL}/leaderboard`,
@@ -142,6 +156,8 @@ const Leaderboard = () => {
         setCurrentUserRank(rank || 0);
       } catch (error) {
         console.error("Error fetching leaderboard data", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -156,6 +172,10 @@ const Leaderboard = () => {
   const filteredStudents = sortedStudents.filter((student) =>
     student.username.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  if (isLoading) {
+    return <Loader bool={true} />;
+  }
 
   return (
     <div className="bg-black min-h-screen text-white p-4 sm:p-6 md:p-8 lg:p-10 max-w-7xl mx-auto">
