@@ -36,7 +36,7 @@ mongoose
 // Middleware
 app.use(
   cors({
-    origin: process.env.CLIENT_URL,
+    origin: [process.env.CLIENT_URL, "http://localhost:5173"],
   })
 );
 app.use(express.json()); // Parse JSON bodies
