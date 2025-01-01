@@ -307,7 +307,6 @@ const Forum = () => {
             </div>
           ))}
         </div>
-        )
       </div>
     </div>
   );
