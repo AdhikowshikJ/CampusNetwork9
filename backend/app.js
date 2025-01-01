@@ -50,11 +50,7 @@ app.use(require("./routes/profile"));
 app.use(require("./routes/follow"));
 app.use(require("./routes/forumRoute"));
 app.use("/chat", require("./routes/chatRoute"));
-app.use(
-  "/message",
-
-  require("./routes/messageRoute")
-);
+app.use("/message", require("./routes/messageRoute"));
 
 app.use("/notification", require("./routes/notification"));
 
@@ -66,6 +62,7 @@ let activeChatUsers = [];
 
 io.on("connection", (socket) => {
   console.log("connected with:", socket.id);
+
   // add new User
   socket.on("new-user-add", (newUserId) => {
     // if user is not added previously
@@ -76,6 +73,7 @@ io.on("connection", (socket) => {
 
     io.emit("get-users", activeUsers);
   });
+
   socket.on("new-chat-user-add", (newUserId) => {
     if (!activeChatUsers.some((user) => user.userId === newUserId)) {
       activeChatUsers.push({ userId: newUserId, socketId: socket.id });
@@ -103,6 +101,7 @@ io.on("connection", (socket) => {
       io.to(user.socketId).emit("recieve-message", data);
     }
   });
+
   socket.on("notification", (data) => {
     console.log("Sending from socket to :", data.receiver._id);
     const { receiver } = data;
@@ -125,6 +124,33 @@ app.use((err, req, res, next) => {
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
+
+// Add ping endpoint
+app.get("/ping", (req, res) => {
+  res.status(200).send("Server is alive");
+});
+
+// Setup periodic ping
+const pingInterval = 25 * 60 * 1000; // 25 minutes in milliseconds
+setInterval(() => {
+  console.log("Pinging server to keep alive...");
+  http
+    .get(
+      `${
+        process.env.SERVER_URL ||
+        "http://localhost:" + (process.env.PORT || 3000)
+      }/ping`,
+      (resp) => {
+        if (resp.statusCode === 200) {
+          console.log("Ping successful");
+        }
+      }
+    )
+    .on("error", (err) => {
+      console.log("Ping failed:", err.message);
+    });
+}, pingInterval);
+
 // Start the server
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {

@@ -3,7 +3,8 @@ import {
   HeartIcon,
   ChatBubbleLeftIcon,
   UserPlusIcon,
-  ChatBubbleLeftRightIcon, // Add an appropriate icon for forum
+  ChatBubbleLeftRightIcon,
+  InboxIcon,
 } from "@heroicons/react/24/solid";
 import useSocket from "../../hooks/useSocket";
 import useAuthStore from "../Store/authStore";
@@ -12,12 +13,14 @@ import { Link } from "react-router-dom";
 
 const Notifications = () => {
   const [activeTab, setActiveTab] = useState("All");
+  const [isLoading, setIsLoading] = useState(true);
   const tabs = ["All", "Follows", "Likes", "Comments", "Forum"];
   const { socket } = useSocket();
   const { user } = useAuthStore();
   const [notifications, setNotifications] = useState([]);
 
   const fetchNotifications = async () => {
+    setIsLoading(true);
     try {
       const response = await axios.get(
         `${import.meta.env.VITE_API_BASE_URL}/notification/`,
@@ -32,8 +35,11 @@ const Notifications = () => {
       setNotifications([...unreadNotifications, ...readNotifications]);
     } catch (error) {
       console.error("Error fetching notifications:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
+
   const markAsRead = async (notificationId) => {
     try {
       await axios.put(
@@ -46,7 +52,6 @@ const Notifications = () => {
         }
       );
 
-      // Update the notification's status to read in the frontend
       setNotifications(
         notifications.map((notification) => {
           if (notification._id === notificationId) {
@@ -60,18 +65,15 @@ const Notifications = () => {
     }
   };
 
-  // Fetch initial notifications when the component mounts
   useEffect(() => {
     fetchNotifications();
   }, [user]);
 
-  // Listen for real-time "like" events via socket.io
   useEffect(() => {
     if (socket) {
       socket.on("receive-notification", (data) => {
-        console.log("Like received:", data);
+        console.log("Notification received:", data);
         setNotifications((prevNotifications) => [
-          ...prevNotifications,
           {
             post: data.post,
             reciever: data.reciever?._id,
@@ -79,14 +81,14 @@ const Notifications = () => {
             type: data.type,
             _id: data.post,
           },
+          ...prevNotifications,
         ]);
       });
     }
 
-    // Clean up the socket listener when the component unmounts
     return () => {
       if (socket) {
-        socket.off("receive-like");
+        socket.off("receive-notification");
       }
     };
   }, [socket]);
@@ -113,6 +115,24 @@ const Notifications = () => {
     );
   });
 
+  const EmptyState = () => (
+    <div className="flex flex-col items-center justify-center py-12 px-4">
+      <InboxIcon className="w-16 h-16 text-gray-600 mb-4" />
+      <h3 className="text-lg font-medium text-gray-300 mb-2">
+        No notifications yet
+      </h3>
+      <p className="text-gray-500 text-center max-w-sm">
+        When you get notifications, they'll show up here.
+      </p>
+    </div>
+  );
+
+  const LoadingState = () => (
+    <div className="flex items-center justify-center py-12">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-purple-500"></div>
+    </div>
+  );
+
   return (
     <div className="max-w-2xl mx-auto bg-black text-white min-h-screen">
       <div className="sticky top-0 bg-black z-10">
@@ -131,36 +151,45 @@ const Notifications = () => {
           ))}
         </div>
       </div>
+
       <div className="divide-y divide-gray-700">
-        {filteredNotifications.map((notification) => (
-          <div
-            key={notification._id}
-            className={`flex items-start p-4 ${
-              !notification.isRead ? "font-bold bg-gray-900" : ""
-            }`}
-            onClick={() => markAsRead(notification._id)} // Mark as read on click
-          >
-            <Link to={`/${notification.sender.username}`}>
-              <img
-                src={notification.sender.profileImage}
-                alt={notification.sender.username}
-                className="w-12 h-12 rounded-full mr-4"
-              />
-            </Link>
-            <div className="flex-1">
+        {isLoading ? (
+          <LoadingState />
+        ) : filteredNotifications.length === 0 ? (
+          <EmptyState />
+        ) : (
+          filteredNotifications.map((notification) => (
+            <div
+              key={notification._id}
+              className={`flex items-start p-4 hover:bg-gray-900 transition-colors duration-200 ${
+                !notification.isRead ? "bg-gray-900" : ""
+              }`}
+              onClick={() => markAsRead(notification._id)}
+            >
               <Link to={`/${notification.sender.username}`}>
-                <p>{notification.sender.username}</p>
+                <img
+                  src={notification.sender.profileImage}
+                  alt={notification.sender.username}
+                  className="w-12 h-12 rounded-full mr-4"
+                />
               </Link>
-              <p className="text-gray-400">
-                {notification.type === "like" && "liked your post"}
-                {notification.type === "comment" && "commented on your post"}
-                {notification.type === "follow" && "followed you"}
-                {notification.type === "forum" && "replied to your forum"}
-              </p>
+              <div className="flex-1">
+                <Link to={`/${notification.sender.username}`}>
+                  <p className="hover:underline">
+                    {notification.sender.username}
+                  </p>
+                </Link>
+                <p className="text-gray-400">
+                  {notification.type === "like" && "liked your post"}
+                  {notification.type === "comment" && "commented on your post"}
+                  {notification.type === "follow" && "followed you"}
+                  {notification.type === "forum" && "replied to your forum"}
+                </p>
+              </div>
+              <div className="ml-4">{getIcon(notification.type)}</div>
             </div>
-            <div className="ml-4">{getIcon(notification.type)}</div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );

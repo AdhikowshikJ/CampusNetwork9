@@ -20,6 +20,7 @@ import Loader from "../Reusable/Loader";
 import { BorderBeam } from "../ui/border-beam";
 import CreatePostSection from "../Reusable/CreatePostSection";
 import useAuthStore from "../Store/authStore";
+import { TextIcon } from "lucide-react";
 
 const iconMap = { FaGithub, FaLinkedin, FaInstagram, FaTwitter };
 
@@ -120,6 +121,36 @@ export default function Profile() {
   }
 
   const isCurrentUserProfile = authUser?._id === user._id;
+  const EmptyPostsState = () => (
+    <div className="flex flex-col items-center justify-center py-12 px-4 border border-gray-800 rounded-lg bg-gray-900/50">
+      <TextIcon className="w-16 h-16 text-gray-600 mb-4" />
+      {isCurrentUserProfile ? (
+        <>
+          <h3 className="text-lg font-medium text-gray-300 mb-2">
+            No posts yet
+          </h3>
+          <p className="text-gray-500 text-center max-w-sm mb-4">
+            Share your thoughts, experiences, or questions with your community.
+          </p>
+          <Button
+            onClick={() => setIsCreatePostOpen(true)}
+            className="bg-[#ae00ff] hover:bg-[#ce6bfc] transition-colors duration-200"
+          >
+            Create Your First Post
+          </Button>
+        </>
+      ) : (
+        <>
+          <h3 className="text-lg font-medium text-gray-300 mb-2">
+            No posts yet
+          </h3>
+          <p className="text-gray-500 text-center max-w-sm">
+            {user.name || user.username} hasn't posted anything yet.
+          </p>
+        </>
+      )}
+    </div>
+  );
 
   return (
     <div className="flex justify-center items-center ">
@@ -318,27 +349,33 @@ export default function Profile() {
             </div>
           )}
           {/* Posts Section */}
-          <div className="max-w-2xl  mt-8 mx-auto">
+          <div className="max-w-2xl mt-8 mx-auto w-full">
             <h2 className="text-2xl font-bold mb-4">Posts</h2>
             <div className="flex-col">
-              {posts.map((post) => (
-                <PostCard
-                  key={post._id}
-                  id={post._id}
-                  createdAt={post.createdAt}
-                  likes={post.likes}
-                  likesCount={post.likes.length}
-                  userId={authUser?._id}
-                  avatar={userProfile.profileImage}
-                  name={userProfile.name}
-                  username={userProfile.username}
-                  email={post.postedBy.email}
-                  content={post.content}
-                  image={post.image}
-                  section={userProfile.section}
-                  branch={userProfile.branch ? userProfile.branch : null}
-                />
-              ))}
+              {loading ? (
+                <Loader bool={loading} />
+              ) : posts.length === 0 ? (
+                <EmptyPostsState />
+              ) : (
+                posts.map((post) => (
+                  <PostCard
+                    key={post._id}
+                    id={post._id}
+                    createdAt={post.createdAt}
+                    likes={post.likes}
+                    likesCount={post.likes.length}
+                    userId={authUser?._id}
+                    avatar={userProfile.profileImage}
+                    name={userProfile.name}
+                    username={userProfile.username}
+                    email={post.postedBy.email}
+                    content={post.content}
+                    image={post.image}
+                    section={userProfile.section}
+                    branch={userProfile.branch ? userProfile.branch : null}
+                  />
+                ))
+              )}
             </div>
           </div>
         </div>
