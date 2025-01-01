@@ -1,0 +1,9 @@
+export { default as Home } from "./Home";
+export { default as Explore } from "./Explore";
+export { default as Profile } from "./Profile";
+export { default as StudentOfTheWeek } from "./StudentOfTheWeek";
+export { default as Community } from "./Community";
+export { default as Forum } from "./Forum";
+export { default as Leaderboard } from "./Leaderboard";
+export { default as Notifications } from "./Notifications";
+export { default as Message } from "./Message";
