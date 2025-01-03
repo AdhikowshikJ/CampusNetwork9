@@ -7,6 +7,7 @@ import {
 } from "@heroicons/react/24/solid";
 import Lottie from "react-lottie";
 import animationData from "../lottie/Animation - 1720455401049.json";
+import { Link } from "react-router-dom";
 
 const MobileStudentOfWeek = () => {
   const [topStudent, setTopStudent] = useState(null);
@@ -64,20 +65,26 @@ const MobileStudentOfWeek = () => {
         </div>
       </div>
       <div className="flex items-start p-4 rounded-lg relative z-10">
-        <img
-          src={topStudent.profileImage}
-          className="md:w-12 md:h-12 w-8 h-8 rounded-full border-2 border-indigo-500"
-          onError={(e) => {
-            e.target.src =
-              "https://thumbs.dreamstime.com/b/default-avatar-profile-icon-vector-social-media-user-image-182145777.jpg";
-          }}
-          alt={topStudent.name}
-        />
+        <Link to={`/${topStudent.username}`}>
+          {" "}
+          <img
+            src={topStudent.profileImage}
+            className="md:w-12 md:h-12 w-8 h-8 rounded-full border-2 border-indigo-500"
+            onError={(e) => {
+              e.target.src =
+                "https://thumbs.dreamstime.com/b/default-avatar-profile-icon-vector-social-media-user-image-182145777.jpg";
+            }}
+            alt={topStudent.name}
+          />
+        </Link>
         <div className="flex-grow items-center">
           <div className="flex flex-col ml-2 pb-2">
-            <div className="text-xl font-bold text-white">
-              {topStudent.name || topStudent.username}
-            </div>
+            <Link to={`/${topStudent.username}`}>
+              <div className="text-xl font-bold text-white">
+                {topStudent.name || topStudent.username}
+              </div>
+            </Link>
+
             <div className="text-sm text-gray-400">
               @{topStudent.handle} • {topStudent.section}
             </div>

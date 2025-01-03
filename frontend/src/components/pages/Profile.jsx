@@ -20,7 +20,7 @@ import Loader from "../Reusable/Loader";
 import { BorderBeam } from "../ui/border-beam";
 import CreatePostSection from "../Reusable/CreatePostSection";
 import useAuthStore from "../Store/authStore";
-import { TextIcon } from "lucide-react";
+import { LogOut, TextIcon } from "lucide-react";
 
 const iconMap = { FaGithub, FaLinkedin, FaInstagram, FaTwitter };
 
@@ -35,6 +35,7 @@ export default function Profile() {
   const userProfile = useUserProfileStore((state) => state.userProfile);
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
   const authUserr = useAuthStore((state) => state.user);
+  const { logout } = useAuthStore();
 
   // Use the useFollow hook
   const { followUser, unfollowUser, isFollowing, isFollowingLoading } =
@@ -115,6 +116,12 @@ export default function Profile() {
     }
     getPosts();
   }, [username]);
+
+  const handleLogout = () => {
+    logout();
+    localStorage.removeItem("token");
+    navigate("/");
+  };
 
   if (loading) {
     return <Loader bool={loading} />;
@@ -201,13 +208,23 @@ export default function Profile() {
                   </div>
                   <div className="mt-4 md:mt-0 flex gap-2">
                     {isCurrentUserProfile ? (
-                      <Button
-                        onClick={handleEditProfile}
-                        className="flex items-center gap-2 px-4 py-2 text-sm md:text-base lg:text-lg bg-[#ae00ff] hover:bg-[#ce6bfc] transition-colors duration-200"
-                      >
-                        <PencilIcon className="w-5 h-5" />
-                        Edit Profile
-                      </Button>
+                      <>
+                        <Button
+                          onClick={handleEditProfile}
+                          className="flex items-center gap-2 px-4 py-2 text-sm md:text-base lg:text-lg bg-[#ae00ff] hover:bg-[#ce6bfc] transition-colors duration-200"
+                        >
+                          <PencilIcon className="w-5 h-5" />
+                          Edit Profile
+                        </Button>
+                        <Button
+                          onClick={handleLogout}
+                          variant="destructive"
+                          className="flex items-center ml-auto gap-2 px-4 py-2 text-sm md:text-base lg:text-lg sm:hidden"
+                        >
+                          <LogOut className="w-5 h-5" />
+                          Logout
+                        </Button>{" "}
+                      </>
                     ) : (
                       <>
                         <Button
@@ -365,6 +382,7 @@ export default function Profile() {
                     likes={post.likes}
                     likesCount={post.likes.length}
                     userId={authUser?._id}
+                    postedBy={post.postedBy}
                     avatar={userProfile.profileImage}
                     name={userProfile.name}
                     username={userProfile.username}

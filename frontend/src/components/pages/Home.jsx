@@ -143,6 +143,7 @@ function Home() {
                   "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQsslVRNcMaUQHy-iIuLvLOHJGFx3dTODzpcg&s"
                 }
                 id={post._id}
+                postedBy={post.postedBy}
                 createdAt={post.createdAt}
                 likes={post.likes}
                 likesCount={post.likes.length}

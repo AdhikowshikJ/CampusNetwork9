@@ -16,11 +16,22 @@ const Explore = () => {
   const [loading, setLoading] = useState(true);
   const authUser = useAuthStore((state) => state.user);
 
-  const sections = ["all", "CSE", "IT", "ECE", "AI/ML", "EEE", "MECH", "CS"];
+  const sections = [
+    "all",
+    "CSE",
+    "IT",
+    "ECE",
+    "AI/ML",
+    "DS",
+    "EEE",
+    "ANE",
+    "MECH",
+    "CS",
+  ];
 
   useEffect(() => {
     fetchPosts();
-  }, [activeSection]); // Add activeSection as dependency to refetch when it changes
+  }, [activeSection]);
 
   const fetchPosts = async () => {
     try {
@@ -109,42 +120,57 @@ const Explore = () => {
           No posts found in this section
         </div>
       ) : activeTab === "media" ? (
-        <div className="grid grid-cols-3 gap-2">
-          {mediaPosts.map((post) => (
-            <Link key={post._id} to={`/post/${post._id}`}>
-              <BlurFade delay={0.25}>
-                <img
-                  src={post.image}
-                  alt={`Post by ${post.postedBy.username}`}
-                  className="w-full h-auto rounded"
-                />
-              </BlurFade>
-            </Link>
-          ))}
-        </div>
+        <>
+          {mediaPosts.length === 0 && (
+            <div className="text-center text-gray-500 text-sm mb-4">
+              No media posts found
+            </div>
+          )}
+
+          <div className="grid grid-cols-3 gap-2">
+            {mediaPosts.map((post) => (
+              <Link key={post._id} to={`/post/${post._id}`}>
+                <BlurFade delay={0.25}>
+                  <img
+                    src={post.image}
+                    alt={`Post by ${post.postedBy.username}`}
+                    className="w-full h-auto rounded"
+                  />
+                </BlurFade>
+              </Link>
+            ))}
+          </div>
+        </>
       ) : (
         <div className="space-y-4">
           {textPosts.map((post) => (
-            <div key={post._id} className="rounded">
-              <PostCard
-                avatar={
-                  post.postedBy.profileImage ||
-                  "https://www.creativefabrica.com/wp-content/uploads/2021/09/25/NC-CN-logo-design-vector-Graphics-17819044-1.jpg"
-                }
-                id={post._id}
-                createdAt={post.createdAt}
-                branch={post.postedBy.branch}
-                section={post.postedBy.section}
-                name={post.postedBy.name}
-                email={post.postedBy.email}
-                username={post.postedBy.username}
-                content={post.content}
-                comments={post.comments}
-                userId={authUser?._id}
-                likes={post.likes}
-                likesCount={post.likes.length}
-              />
-            </div>
+            <>
+              {textPosts.length === 0 && (
+                <div className="text-center text-gray-500 text-sm mb-4">
+                  No media posts found
+                </div>
+              )}
+
+              <div key={post._id} className="rounded">
+                <Link to={`/post/${post._id}`}>
+                  <PostCard
+                    avatar={post.postedBy.profileImage}
+                    id={post._id}
+                    createdAt={post.createdAt}
+                    branch={post.postedBy.branch}
+                    section={post.postedBy.section}
+                    name={post.postedBy.name}
+                    email={post.postedBy.email}
+                    username={post.postedBy.username}
+                    content={post.content}
+                    comments={post.comments}
+                    userId={authUser?._id}
+                    likes={post.likes}
+                    likesCount={post.likes.length}
+                  />
+                </Link>
+              </div>
+            </>
           ))}
         </div>
       )}

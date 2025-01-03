@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { PlusIcon, XCircleIcon } from "@heroicons/react/24/solid";
+import {
+  ArrowLeftIcon,
+  PlusIcon,
+  XCircleIcon,
+} from "@heroicons/react/24/solid";
 import {
   FaFacebook,
   FaGithub,
@@ -16,6 +20,52 @@ import {
 import { Listbox, Transition } from "@headlessui/react";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import useAuthStore from "../Store/authStore";
+import Loader from "../Reusable/Loader";
+const skillOptions = [
+  "Web Development",
+  "Android Development",
+  "iOS Development",
+  "Data Science",
+  "Machine Learning",
+  "UI/UX Design",
+  "Graphic Design",
+  "Content Writing",
+  "Digital Marketing",
+  "Photography",
+  "Videography",
+  "Video Editing",
+  "Animation",
+  "3D Modeling",
+  "Game Development",
+  "Dancing",
+  "Singing",
+  "Music Production",
+  "Acting",
+  "Public Speaking",
+  "Content Creation",
+  "Social Media Management",
+  "Event Management",
+  "Project Management",
+  "Leadership",
+  "Team Management",
+  "Problem Solving",
+  "Critical Thinking",
+  "Product Management",
+  "Blockchain Development",
+  "Cloud Computing",
+  "Cybersecurity",
+  "Art & Illustration",
+  "Creative Writing",
+  "Technical Writing",
+  "Data Analytics",
+  "Business Analysis",
+  "Digital Art",
+  "Sports",
+  "Fitness Training",
+  "Teaching/Mentoring",
+  "Research",
+  "Entrepreneurship",
+].sort();
 
 const iconMapping = {
   "facebook.com": <FaFacebook />, // Replace with actual icon class names or URLs
@@ -66,6 +116,7 @@ export default function EditProfile() {
   const navigate = useNavigate();
   const [user, setUser] = useState({});
   const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [profileImage, setProfileImage] = useState(null);
   const [bannerImage, setBannerImage] = useState(null);
   const [socialLinks, setSocialLinks] = useState([]);
@@ -130,13 +181,14 @@ export default function EditProfile() {
     }
   };
 
-  const handleSkillChange = (index, value) => {
-    const newSkills = [...user.skills];
-    newSkills[index] = value;
-    setUser((prevUser) => ({
-      ...prevUser,
-      skills: newSkills,
-    }));
+  const handleSkillChange = (e) => {
+    const value = e.target.value;
+    if (!user.skills.includes(value) && value !== "") {
+      setUser((prevUser) => ({
+        ...prevUser,
+        skills: [...(prevUser.skills || []), value],
+      }));
+    }
   };
 
   const addSkill = () => {
@@ -189,6 +241,7 @@ export default function EditProfile() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSaving(true);
     try {
       const profileImageUrl = await uploadImage(profileImage);
       const bannerImageUrl = await uploadImage(bannerImage);
@@ -214,28 +267,26 @@ export default function EditProfile() {
       navigate(`/${username}`);
     } catch (error) {
       console.error("Error updating profile:", error);
+    } finally {
+      setIsSaving(false);
     }
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <Loader bool={true} />;
   }
 
   return (
-    <div className="container mx-auto py-12 px-4 md:px-6 lg:px-8">
-      <h1 className="text-3xl font-bold mb-8">Edit Profile</h1>
+    <div className="container mx-auto  w-full max-w-3xl py-12 px-4 md:px-6 lg:px-8">
+      <div className="flex items-center gap-2">
+        <Link to={`/${username}`} className="block sm:hidden">
+          <ArrowLeftIcon className="h-6 w-6 cursor-pointer mb-8" />
+        </Link>
+        <h1 className="text-3xl font-bold mb-8">Edit Profile</h1>
+      </div>
+
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              name="name"
-              value={user.name || ""}
-              onChange={handleInputChange}
-              className="mt-1"
-            />
-          </div>
           <div>
             <Label htmlFor="username">Username</Label>
             <Input
@@ -243,7 +294,7 @@ export default function EditProfile() {
               name="username"
               value={user.username || ""}
               onChange={handleInputChange}
-              className="mt-1"
+              className="mt-1 border border-gray-700"
             />
           </div>
         </div>
@@ -254,7 +305,7 @@ export default function EditProfile() {
             name="bio"
             value={user.bio || ""}
             onChange={handleInputChange}
-            className="mt-1"
+            className="mt-1 border border-gray-700"
             rows={4}
           />
         </div>
@@ -265,7 +316,9 @@ export default function EditProfile() {
             name="profileImage"
             type="file"
             onChange={(e) => handleFileChange(e, "profile")}
-            className="mt-1"
+            className="mt-1 
+            border border-gray-700
+            "
           />
         </div>
         <div>
@@ -275,7 +328,7 @@ export default function EditProfile() {
             name="bannerImage"
             type="file"
             onChange={(e) => handleFileChange(e, "banner")}
-            className="mt-1"
+            className="mt-1 border border-gray-700"
           />
         </div>
         <div>
@@ -283,11 +336,12 @@ export default function EditProfile() {
           {user.skills &&
             user.skills.map((skill, index) => (
               <div key={index} className="flex items-center mt-2">
-                <Input
-                  value={skill}
-                  onChange={(e) => handleSkillChange(index, e.target.value)}
-                  className="flex-grow"
-                />
+                <div
+                  className="flex-grow px-3  py-2 border border-gray-700
+                rounded-md bg-black"
+                >
+                  {skill}
+                </div>
                 <Button
                   type="button"
                   onClick={() => removeSkill(index)}
@@ -298,53 +352,25 @@ export default function EditProfile() {
                 </Button>
               </div>
             ))}
-          <Button
-            type="button"
-            onClick={addSkill}
-            className="mt-2 flex items-center"
-            variant="outline"
-          >
-            <PlusIcon className="h-5 w-5 mr-2" />
-            Add Skill
-          </Button>
+          <div className="mt-2">
+            <select
+              onChange={handleSkillChange}
+              className="w-full py-2 px-3 border border-gray-700 bg-black rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm "
+            >
+              <option value="">Select a skill</option>
+              {skillOptions.map((skill) => (
+                <option key={skill} value={skill}>
+                  {skill}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
-        {/* <div>
-          <Label>Social Links</Label>
-          {socialLinks.map((link, index) => (
-            <div key={index} className="flex items-center mt-2 space-x-2">
-              <div className="w-10 flex justify-center items-center">
-                {link.icon}
-              </div>
-              <Input
-                value={link.url}
-                onChange={(e) => handleSocialLinkChange(index, e.target.value)}
-                placeholder="Enter social media URL"
-                className="flex-grow"
-              />
-              <Button
-                type="button"
-                onClick={() => removeSocialLink(index)}
-                className="p-2"
-                variant="destructive"
-              >
-                <XCircleIcon className="h-5 w-5" />
-              </Button>
-            </div>
-          ))}
-          <Button
-            type="button"
-            onClick={addSocialLink}
-            className="mt-2 flex items-center"
-            variant="outline"
-          >
-            <PlusIcon className="h-5 w-5 mr-2" />
-            Add Social Link
-          </Button>
-        </div> */}
+
         <div>
           <Label>Branch</Label>
           {authUser && authUser.branch ? (
-            <div className="block w-full py-2 px-3 border border-gray-300 bg-gray-100 rounded-md shadow-sm text-black">
+            <div className="block w-full py-2 px-3 border border-gray-700 mt-2 bg-black rounded-md shadow-sm text-white">
               {authUser.branch}
             </div>
           ) : (
@@ -352,7 +378,7 @@ export default function EditProfile() {
               name="branch"
               value={branch}
               onChange={(e) => handleBranchChange(e.target.value)}
-              className="block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-black"
+              className="block w-full py-2 px-3 border border-gray-700 bg-black text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             >
               <option value="">Select a branch</option>
               {branchOptions.map((branch) => (
@@ -367,7 +393,7 @@ export default function EditProfile() {
         <div>
           <Label>Section</Label>
           {authUser && authUser.section ? (
-            <div className="block w-full py-2 px-3 border border-gray-300 bg-gray-100 rounded-md shadow-sm text-black">
+            <div className="block w-full py-2 px-3 border border-gray-700 mt-2 bg-black rounded-md shadow-sm text-white">
               {authUser.section}
             </div>
           ) : (
@@ -427,8 +453,8 @@ export default function EditProfile() {
             Add Bio Link
           </Button>
         </div>
-        <Button type="submit" className="w-full">
-          Save Changes
+        <Button type="submit" className="w-full" disabled={isSaving}>
+          {isSaving ? "Saving..." : "Save Changes"}
         </Button>
       </form>
     </div>

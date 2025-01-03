@@ -11,6 +11,7 @@ import {
 } from "react-icons/fa";
 import axios from "axios";
 import useAuthStore from "../Store/authStore";
+import { Link } from "react-router-dom";
 
 const Loader = (bool) => (
   <div
@@ -42,20 +43,24 @@ const TopThreeUsers = ({ users }) => (
           }`}
         >
           <div className="relative">
-            <img
-              src={user.profileImage}
-              alt={user.username}
-              className={`w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full object-cover border-4 ${
-                index === 0 ? "border-yellow-400" : "border-[#ae00ff]"
-              }`}
-            />
-            {index === 0 && (
-              <FaCrown className="absolute -top-4 left-1/2 transform -translate-x-1/2 text-yellow-400 text-2xl" />
-            )}
+            <Link to={`/${user.username}`}>
+              <img
+                src={user.profileImage}
+                alt={user.username}
+                className={`w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full object-cover border-4 ${
+                  index === 0 ? "border-yellow-400" : "border-[#ae00ff]"
+                }`}
+              />
+              {index === 0 && (
+                <FaCrown className="absolute -top-4 left-1/2 transform -translate-x-1/2 text-yellow-400 text-2xl" />
+              )}
+            </Link>
           </div>
-          <p className="text-sm sm:text-base font-medium mt-2 text-white">
-            {user.username}
-          </p>
+          <Link to={`/${user.username}`}>
+            <p className="text-sm hover:underline sm:text-base font-medium mt-2 text-white">
+              {user.username}
+            </p>
+          </Link>
           <div className="flex items-center">
             <p className="text-gray-300 font-bold">{user.points}pts</p>
           </div>
@@ -73,14 +78,18 @@ const UserRankCard = ({ rank, user }) => (
       <span className="text-lg font-bold mr-4 text-yellow-400">{rank}</span>
       {user && (
         <>
-          <img
-            src={user.profileImage}
-            alt={user.username}
-            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover mr-4"
-          />
-          <span className="flex-grow text-white">{user.username}</span>
+          <Link to={`/${user.username}`}>
+            <img
+              src={user.profileImage}
+              alt={user.username}
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover mr-4"
+            />
+          </Link>
+          <span className="flex-grow text-white hover:underline">
+            <Link to={`/${user.username}`}>{user.username} </Link>
+          </span>
           <div className="flex items-center">
-            <span className="font-bold text-accent">{user.points}pts</span>
+            <span className="font-bold text-purple-400">{user.points}pts</span>
           </div>
         </>
       )}
@@ -115,12 +124,16 @@ const RankList = ({ users, currentUserRank, startRank }) => (
         <span className="text-lg font-bold mr-4 w-6 text-center">
           {index + startRank}
         </span>
-        <img
-          src={user.profileImage}
-          alt={user.username}
-          className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-full mr-4"
-        />
-        <span className="flex-grow text-white">{user.username}</span>
+        <Link to={`/${user.username}`}>
+          <img
+            src={user.profileImage}
+            alt={user.username}
+            className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-full mr-4"
+          />
+        </Link>
+        <span className="flex-grow text-white hover:underline">
+          <Link to={`/${user.username}`}>{user.username} </Link>
+        </span>
         <div className="flex items-center">
           <span className="font-bold text-[#d083f4]">{user.points}pts</span>
         </div>
@@ -182,8 +195,8 @@ const Leaderboard = () => {
       <div className="max-w-3xl mx-auto">
         <header className="flex items-center justify-between mb-8">
           <div className="flex items-center">
-            <FaChevronLeft className="mr-2 cursor-pointer text-accent" />
-            <h1 className="text-xl sm:text-2xl font-semibold text-accent">
+            {/* <FaChevronLeft className="mr-2 cursor-pointer text-accent" /> */}
+            <h1 className="text-xl sm:text-2xl font-semibold text-white">
               Leaderboard
             </h1>
           </div>

@@ -10,11 +10,16 @@ import { HandThumbUpIcon } from "@heroicons/react/24/solid";
 import useForum from "../../hooks/useForum";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { formatDistanceToNow } from "date-fns";
+import { useToast } from "../ui/use-toast";
+import { Heart } from "lucide-react";
+import useAuthStore from "../Store/authStore";
+import { Link } from "react-router-dom";
 
 const Forum = () => {
   const [activeTab, setActiveTab] = useState("events");
   const { forumTopics, addForumTopic, addReply, handleLike, error, setError } =
     useForum();
+  const currentUser = useAuthStore((state) => state.user);
   const [activeTopicId, setActiveTopicId] = useState(null);
   const [newReply, setNewReply] = useState("");
   const [newTopic, setNewTopic] = useState({
@@ -23,6 +28,7 @@ const Forum = () => {
     category: "",
   });
   const [showReplies, setShowReplies] = useState({});
+  const { toast } = useToast();
 
   function timeAgo(timestamp) {
     return formatDistanceToNow(new Date(timestamp), { addSuffix: true });
@@ -40,12 +46,18 @@ const Forum = () => {
   };
 
   const handleAddTopic = async () => {
-    if (newTopic.title.trim() === "" || newTopic.content.trim() === "") return;
+    if (newTopic.title.trim() === "" || newTopic.content.trim() === "") {
+      toast({ title: "Please fill in all fields", variant: "destructive" });
+      return;
+    }
     try {
       await addForumTopic(newTopic);
       setNewTopic({ title: "", content: "", category: "" });
     } catch (error) {
-      setError("Failed to add new topic. Please try again.");
+      toast({
+        title: "Failed to add new topic. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -200,6 +212,23 @@ const Forum = () => {
               </button>
             </div>
           </div>
+          {forumTopics.length === 0 && (
+            <div className="bg-gray-900/50 backdrop-blur-sm p-8 rounded-xl border border-gray-800/50 text-center">
+              <ChatBubbleLeftRightIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-white mb-2">
+                No discussions yet
+              </h3>
+              <p className="text-gray-400 mb-6">
+                Be the first one to start a discussion!
+              </p>
+              <button
+                className="bg-[#ae00ff] hover:bg-[#ae00ff]/80 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 hover:shadow-[0_0_20px_rgba(174,0,255,0.3)]"
+                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+              >
+                Start New Topic
+              </button>
+            </div>
+          )}
 
           {/* Existing Topics */}
           {forumTopics.map((topic) => (
@@ -211,14 +240,20 @@ const Forum = () => {
                 {topic.title}
               </h3>
               <div className="flex items-center mb-6">
-                <img
-                  src={topic.postedBy.profileImage}
-                  alt={topic.postedBy.username}
-                  className="w-10 h-10 rounded-full mr-4 border-2 border-[#ae00ff]/20"
-                />
+                <Link to={`/${topic.postedBy.username}`}>
+                  {" "}
+                  <img
+                    src={topic.postedBy.profileImage}
+                    alt={topic.postedBy.username}
+                    className="w-10 h-10 rounded-full mr-4 border-2 border-[#ae00ff]/20"
+                  />{" "}
+                </Link>
                 <div>
                   <span className="text-white font-medium block">
-                    {topic.postedBy.username}
+                    <Link to={`/${topic.postedBy.username}`}>
+                      {" "}
+                      {topic.postedBy.username}{" "}
+                    </Link>
                   </span>
                   <span className="text-sm text-gray-400">
                     {topic.createdAt && timeAgo(topic.createdAt)}
@@ -237,7 +272,11 @@ const Forum = () => {
                     className="text-gray-400 hover:text-[#ae00ff] transition-colors duration-300"
                     onClick={() => handleTopicLike(topic._id)}
                   >
-                    <HandThumbUpIcon className="w-5 h-5 inline mr-1" />
+                    {topic.likes.includes(currentUser?._id) ? (
+                      <Heart className="w-5 h-5 inline mr-1 fill-[#ae00ff] text-[#ae00ff]" />
+                    ) : (
+                      <Heart className="w-5 h-5 inline mr-1" />
+                    )}
                     <span>{topic.likes.length}</span>
                   </button>
                   <button
@@ -269,19 +308,24 @@ const Forum = () => {
                       className="bg-gray-800/50 p-4 rounded-lg border border-gray-700/50"
                     >
                       <div className="flex items-center mb-3 text-gray-300">
-                        <UserCircleIcon className="w-5 h-5 mr-2" />
+                        <Link to={`/${reply.postedBy.username}`}>
+                          <img
+                            src={reply?.postedBy?.profileImage}
+                            alt={reply.postedBy.username}
+                            className="w-10 h-10 rounded-full mr-2 border-2 border-[#ae00ff]/20"
+                          />
+                        </Link>
                         <span className="font-medium">
-                          {reply.postedBy.username}
+                          <Link to={`/${reply.postedBy.username}`}>
+                            {" "}
+                            {reply.postedBy.username}{" "}
+                          </Link>
                         </span>
                       </div>
                       <p className="text-gray-300 mb-3">{reply.content}</p>
-                      <button
-                        className="text-gray-400 hover:text-[#ae00ff] transition-colors duration-300"
-                        onClick={() => handleReplyLike(topic._id, reply._id)}
-                      >
-                        <HandThumbUpIcon className="w-4 h-4 inline mr-1" />
-                        <span>{reply.likes.length}</span>
-                      </button>
+                      <span className="text-sm text-gray-400">
+                        {timeAgo(reply.createdAt)}
+                      </span>
                     </div>
                   ))}
                 </div>

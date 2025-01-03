@@ -95,7 +95,6 @@ router.get("/userposts/:username", requireLogin, async (req, res) => {
 router.post("/createpost", requireLogin, async (req, res) => {
   const { content, image } = req.body;
 
-  console.log(req.body);
   if (!content) {
     return res.status(422).json({ error: "Please add content" });
   }
@@ -110,20 +109,24 @@ router.post("/createpost", requireLogin, async (req, res) => {
     // Save the post
     const result = await post.save();
 
-    // Points logic: award points for creating a post
-    const pointsForPost = 10; // Set the number of points you want to give for creating a post
+    const today = new Date().toISOString().split("T")[0]; // Get the current date in YYYY-MM-DD format
 
-    // Increment user points
-    const updatedUser = await USER.findByIdAndUpdate(
-      req.user._id,
-      { $inc: { points: pointsForPost } }, // Increment the points
-      { new: true } // Return the updated document
-    );
-    console.log(updatedUser);
+    // Check if points have already been incremented today
+    const user = await USER.findById(req.user._id);
+
+    if (user.lastPostDate !== today) {
+      const pointsForPost = 10; // Set the points for posting
+
+      // Increment user points and update lastPostDate
+      user.points += pointsForPost;
+      user.lastPostDate = today;
+      await user.save();
+    }
+
     res.json({
       result: result,
       message: "Post created successfully",
-      updatedPoints: updatedUser.points, // Return updated points if needed in response
+      updatedPoints: user.points, // Return updated points if needed in response
     });
   } catch (err) {
     console.error(err);
@@ -222,6 +225,40 @@ router.get("/post/:id", requireLogin, async (req, res) => {
       )
       .lean();
     res.json({ post });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+router.delete("/deletepost/:postId", requireLogin, async (req, res) => {
+  try {
+    const post = await POST.findOne({ _id: req.params.postId });
+
+    if (!post) {
+      return res.status(404).json({ error: "Post not found" });
+    }
+
+    if (post.postedBy.toString() !== req.user._id.toString()) {
+      return res.status(401).json({ error: "Not authorized" });
+    }
+
+    // Delete all comments for this post
+    await COMMENT.deleteMany({ postId: req.params.postId });
+
+    // Delete the post
+    await post.deleteOne();
+
+    // Decrement points by 1
+    const user = await USER.findByIdAndUpdate(
+      req.user._id,
+      { $inc: { points: -1 } }, // Decrement points by 1
+      { new: true }
+    );
+
+    res.json({
+      message: "Post deleted successfully",
+      updatedPoints: user.points, // Return updated points if needed in response
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal server error" });

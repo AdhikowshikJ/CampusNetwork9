@@ -9,6 +9,7 @@ import {
   PencilSquareIcon,
   ChatBubbleOvalLeftIcon,
   UsersIcon,
+  BriefcaseIcon,
 } from "@heroicons/react/24/outline";
 import { GlobeAmericasIcon } from "@heroicons/react/24/solid";
 import {
@@ -69,6 +70,12 @@ function MobileBottomBar() {
                 <DropdownMenuItem>
                   <Link to="/forum" onClick={() => setIsDropdownOpen(false)}>
                     <UsersIcon className="h-6 w-6 text-gray-400 hover:text-white" />
+                  </Link>
+                </DropdownMenuItem>
+                <span className="text-gray-500">|</span>
+                <DropdownMenuItem>
+                  <Link to="/jobs" onClick={() => setIsDropdownOpen(false)}>
+                    <BriefcaseIcon className="h-6 w-6 text-gray-400 hover:text-white" />
                   </Link>
                 </DropdownMenuItem>
               </div>

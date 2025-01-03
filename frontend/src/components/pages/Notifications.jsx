@@ -39,6 +39,7 @@ const Notifications = () => {
       setIsLoading(false);
     }
   };
+  // In your Notifications.jsx
 
   const markAsRead = async (notificationId) => {
     try {
@@ -93,6 +94,28 @@ const Notifications = () => {
     };
   }, [socket]);
 
+  useEffect(() => {
+    const markAllAsRead = async () => {
+      try {
+        await axios.put(
+          `${import.meta.env.VITE_API_BASE_URL}/notification/read-all`,
+          {},
+          {
+            headers: {
+              Authorization: localStorage.getItem("token"),
+            },
+          }
+        );
+      } catch (error) {
+        console.error("Error marking notifications as read:", error);
+      }
+    };
+
+    if (activeTab === "All") {
+      markAllAsRead();
+    }
+  }, [activeTab]);
+
   const getIcon = (type) => {
     switch (type) {
       case "like":
@@ -132,6 +155,8 @@ const Notifications = () => {
       <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-purple-500"></div>
     </div>
   );
+  //reverese the filteredNotifications
+  const reversedNotifications = [...filteredNotifications].reverse();
 
   return (
     <div className="max-w-2xl mx-auto bg-black text-white min-h-screen">

@@ -4,6 +4,7 @@ import MessageInput from "./MessageInput";
 import useAuthStore from "../Store/authStore";
 import axios from "axios";
 import Loader from "./Loader";
+import { format } from "date-fns";
 
 const ChatArea = ({
   activeChat,
@@ -52,6 +53,10 @@ const ChatArea = ({
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+  function formatCreatedAt(createdAt) {
+    // Convert the ISO string to a Date object and format it
+    return format(new Date(createdAt), "h:mm a");
+  }
 
   if (
     loading ||
@@ -71,7 +76,7 @@ const ChatArea = ({
         <>
           <div className="p-4 border-b border-gray-700 flex gap-2 items-center fixed top-0 left-0 right-0 bg-black z-10 sm:relative">
             <button
-              className="text-blue-500 hover:text-blue-400 sm:hidden"
+              className="text-purple-500 hover:text-blue-400 sm:hidden"
               onClick={() => setActiveChat(null)}
             >
               <ArrowLeftIcon className="h-6 w-6" />
@@ -104,13 +109,13 @@ const ChatArea = ({
                 <div
                   className={`max-w-xs px-4 py-2 rounded-lg ${
                     message.senderId === user._id
-                      ? "bg-blue-500"
+                      ? "bg-purple-700"
                       : "bg-gray-700"
                   }`}
                 >
                   <p>{message.text}</p>
                   <p className="text-xs text-gray-300 mt-1">
-                    {message.createdAt}
+                    {formatCreatedAt(message.createdAt)}
                   </p>
                 </div>
               </div>

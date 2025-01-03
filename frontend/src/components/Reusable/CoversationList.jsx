@@ -5,6 +5,7 @@ import InitialChats from "./InitialChats";
 import useAuthStore from "../Store/authStore";
 import axios from "axios";
 import Loader from "./Loader";
+import { format } from "date-fns";
 
 const ConversationList = ({
   initialChats,
@@ -18,6 +19,7 @@ const ConversationList = ({
   const [userChatExists, setUserChatExists] = useState({});
   const [initialLoading, setInitialLoading] = useState(true);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [lastMessages, setLastMessages] = useState({});
   const user = useAuthStore((state) => state.user);
 
   useEffect(() => {
@@ -36,10 +38,39 @@ const ConversationList = ({
   }, [getConversations]);
 
   useEffect(() => {
-    let timeoutId;
+    const fetchLastMessages = async () => {
+      try {
+        const messagePromises = conversations.map(async (convo) => {
+          const response = await axios.get(
+            `${import.meta.env.VITE_API_BASE_URL}/message/${convo._id}/last`,
+            {
+              headers: {
+                Authorization: localStorage.getItem("token"),
+              },
+            }
+          );
+          return { chatId: convo._id, message: response.data };
+        });
 
+        const messages = await Promise.all(messagePromises);
+        const messageMap = {};
+        messages.forEach(({ chatId, message }) => {
+          messageMap[chatId] = message;
+        });
+        setLastMessages(messageMap);
+      } catch (error) {
+        console.error("Error fetching last messages:", error);
+      }
+    };
+
+    if (conversations.length > 0) {
+      fetchLastMessages();
+    }
+  }, [conversations]);
+
+  useEffect(() => {
+    let timeoutId;
     if (search) {
-      // Debounce the search to prevent too many API calls
       timeoutId = setTimeout(async () => {
         try {
           setSearchLoading(true);
@@ -63,7 +94,7 @@ const ConversationList = ({
           console.error("Error fetching mutual followers:", error);
           setSearchLoading(false);
         }
-      }, 300); // Wait 300ms after last keystroke before searching
+      }, 300);
     } else {
       setFilteredUsers([]);
     }
@@ -90,6 +121,10 @@ const ConversationList = ({
     } catch (error) {
       console.error("Error creating chat:", error);
     }
+  };
+
+  const formatTime = (date) => {
+    return format(new Date(date), "h:mm a");
   };
 
   if (initialLoading) {
@@ -153,6 +188,7 @@ const ConversationList = ({
           conversations.map((convo) => {
             const [member1, member2] = convo.members || [];
             const partner = member1?._id === user._id ? member2 : member1;
+            const lastMessage = lastMessages[convo._id];
 
             return (
               <div
@@ -170,11 +206,27 @@ const ConversationList = ({
                   alt={partner?.username || "User"}
                   className="w-12 h-12 rounded-full mr-4"
                 />
-                <div>
-                  <h3 className="font-semibold">
-                    {partner?.username || "Unknown"}
-                  </h3>
-                  <p className="text-gray-400 text-sm">Open chat</p>
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between items-baseline">
+                    <h3 className="font-semibold truncate">
+                      {partner?.username || "Unknown"}
+                    </h3>
+                    {lastMessage && (
+                      <span className="text-xs text-gray-400 ml-2">
+                        {formatTime(lastMessage.createdAt)}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-gray-400 text-sm truncate">
+                    {lastMessage ? (
+                      <span>
+                        {lastMessage.senderId === user._id ? "You: " : ""}
+                        {lastMessage.text}
+                      </span>
+                    ) : (
+                      "No messages yet"
+                    )}
+                  </p>
                 </div>
               </div>
             );

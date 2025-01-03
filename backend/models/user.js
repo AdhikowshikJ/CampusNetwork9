@@ -37,6 +37,7 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
     points: { type: Number, default: 0 },
+    lastPostDate: { type: Date, default: null }, // New field to track last post date
     followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "USER" }],
     following: [{ type: mongoose.Schema.Types.ObjectId, ref: "USER" }],
     posts: [{ type: mongoose.Schema.Types.ObjectId, ref: "POST" }],

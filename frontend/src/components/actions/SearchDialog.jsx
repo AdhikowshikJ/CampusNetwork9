@@ -60,7 +60,7 @@ function SearchDialog() {
           <span className="lg:block hidden">Search</span>
         </button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] bg-black border border-gray-700">
+      <DialogContent className="sm:max-w-[425px] bg-black border border-gray-400">
         <div className="grid gap-4">
           <div className="relative mb-4 mt-3">
             <input
@@ -68,11 +68,21 @@ function SearchDialog() {
               placeholder="Search Campus Network"
               value={searchQuery}
               onChange={handleSearch}
-              className="w-full pl-12 text-highlight pr-4 py-3 bg-gray-800 rounded-full border border-gray-800 focus:outline-none focus:border-[#ae00ff]"
+              className="w-full pl-12 text-highlight pr-4 py-3 bg-gray-800 rounded-full border border-gray-800 focus:outline-none focus:border-gray-600"
             />
             <MagnifyingGlassIcon className="absolute left-4 top-3.5 w-5 h-5 text-gray-500" />
           </div>
           <div className="max-h-[300px] overflow-y-auto">
+            {searchResults.length === 0 && searchQuery && (
+              <div className="text-gray-500 text-center py-4">
+                No results found
+              </div>
+            )}
+            {searchResults.length === 0 && !searchQuery && (
+              <div className="text-gray-500 text-center pb-4">
+                Search for users
+              </div>
+            )}
             {searchResults.map((user) => (
               <div
                 key={user._id}

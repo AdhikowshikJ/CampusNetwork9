@@ -1,8 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { MagnifyingGlassIcon, BellIcon } from "@heroicons/react/24/outline";
 import { Link } from "react-router-dom";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import NotificationBadge from "../Reusable/NotificationBadge";
+import useSocket from "../../hooks/useSocket";
+import useAuthStore from "../Store/authStore";
+import axios from "axios";
 
 function SearchDialog() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -60,6 +64,16 @@ function SearchDialog() {
             <MagnifyingGlassIcon className="absolute left-4 top-3.5 w-5 h-5 text-gray-500" />
           </div>
           <div className="max-h-[300px] overflow-y-auto">
+            {searchResults.length === 0 && !searchQuery && (
+              <div className="text-gray-500 text-center pb-4">
+                Search for users
+              </div>
+            )}
+            {searchResults.length === 0 && searchQuery && (
+              <div className="text-gray-500 text-center py-4">
+                No results found
+              </div>
+            )}
             {searchResults.map((user) => (
               <div
                 key={user.id}
@@ -99,6 +113,51 @@ function SearchDialog() {
 }
 
 function MobileTopBar() {
+  const [unreadCount, setUnreadCount] = useState(0);
+  const { socket } = useSocket();
+  const { user } = useAuthStore();
+
+  const fetchUnreadCount = async () => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/notification/`,
+        {
+          headers: {
+            Authorization: localStorage.getItem("token"),
+          },
+        }
+      );
+      setUnreadCount(response.data.unreadCount);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    }
+  };
+
+  console.log(unreadCount);
+  useEffect(() => {
+    if (user) {
+      fetchUnreadCount();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (socket && user) {
+      socket.on("receive-notification", (data) => {
+        console.log("letsgo");
+        console.log(data.receiver);
+        console.log("user", user._id);
+        if (data.receiver._id === user._id) {
+          setUnreadCount((prev) => prev + 1);
+        }
+      });
+    }
+
+    return () => {
+      if (socket) {
+        socket.off("receive-notification");
+      }
+    };
+  }, [socket, user]);
   return (
     <div className="sticky z-20 top-0 bg-black bg-opacity-80 backdrop-blur-sm p-4 border-b border-gray-800 flex justify-between items-center md:hidden">
       <img
@@ -109,7 +168,11 @@ function MobileTopBar() {
       <div className="flex items-center space-x-4">
         <SearchDialog />
         <Link to="/notifications">
-          <BellIcon className="w-6 h-6" />
+          <NotificationBadge
+            icon={BellIcon}
+            className="text-gray-500 hover:text-gray-300"
+            unreadCount={unreadCount}
+          />
         </Link>
       </div>
     </div>

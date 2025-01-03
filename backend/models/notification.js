@@ -21,6 +21,7 @@ const notificationSchema = new mongoose.Schema(
       ref: "POST",
     },
     isRead: { type: Boolean, default: false },
+    createdAt: { type: Date, default: Date.now },
   },
   {
     timestamps: true,

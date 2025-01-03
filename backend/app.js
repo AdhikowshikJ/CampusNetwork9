@@ -14,6 +14,7 @@ require("./models/forum");
 require("./models/message");
 require("./models/conversation");
 require("./models/notification");
+require("./models/unReadNotificationsCount");
 
 const app = express();
 const server = http.createServer(app);

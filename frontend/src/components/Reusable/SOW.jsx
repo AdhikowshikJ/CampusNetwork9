@@ -92,20 +92,24 @@ const StudentOfWeek = () => {
         <div className="flex items-center mb-4">
           <div className="relative">
             <div className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-[#ee82ee] to-[#9c40ff] opacity-30 blur" />
-            <img
-              src={topStudent.profileImage}
-              alt={topStudent.username}
-              className="relative w-16 h-16 rounded-full object-cover border-2 border-transparent bg-gray-900"
-              onError={(e) => {
-                e.target.src =
-                  "https://thumbs.dreamstime.com/b/default-avatar-profile-icon-vector-social-media-user-image-182145777.jpg";
-              }}
-            />
+            <Link to={`/${topStudent.username}`}>
+              <img
+                src={topStudent.profileImage}
+                alt={topStudent.username}
+                className="relative w-16 h-16 rounded-full object-cover border-2 border-transparent bg-gray-900"
+                onError={(e) => {
+                  e.target.src =
+                    "https://thumbs.dreamstime.com/b/default-avatar-profile-icon-vector-social-media-user-image-182145777.jpg";
+                }}
+              />{" "}
+            </Link>
           </div>
           <div className="ml-4">
-            <h3 className="text-lg font-semibold ">
-              {topStudent.name || topStudent.username}
-            </h3>
+            <Link to={`/${topStudent.username}`}>
+              <h3 className="text-lg font-semibold ">
+                {topStudent.name || topStudent.username}
+              </h3>
+            </Link>
             <p className="text-sm text-gray-400">@{topStudent.handle}</p>
             <p className="text-xs text-gray-300">{topStudent.section}</p>
             <div className="flex items-center mt-1">
